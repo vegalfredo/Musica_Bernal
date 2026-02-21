@@ -1,19 +1,19 @@
 // ═══════════════════════════════════════════════════════════════
-//  SERVICE WORKER — Leyendas Bernal PWA
-//  Cachea la app y todos los audios para uso sin conexión
+//  SERVICE WORKER — Música Bernal PWA  v2
+//  Estrategia: los audios se sirven desde GitHub Pages (mismo
+//  dominio), así no hay problemas de CORS ni de encoding de URLs.
 // ═══════════════════════════════════════════════════════════════
 
-const CACHE_VERSION = 'leyendas-v1';
-const BASE_AUDIO = 'https://raw.githubusercontent.com/vegalfredo/Musica_Bernal/main/';
+const CACHE_NAME = 'musica-bernal-v2';
 
-// Archivos de la app (shell)
+// Archivos del shell de la app
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
 ];
 
-// Todos los archivos de audio del repositorio
+// Nombres exactos de los archivos de audio (mismo directorio que index.html)
 const AUDIO_FILES = [
   '00 Musica de Sala.mp3',
   '01 primera llamada Las Leyendas.mp3',
@@ -35,90 +35,129 @@ const AUDIO_FILES = [
   '15 Final Satisfactorio.mp3',
   '16 ENYA MUSICA FINAL EPICA.mp3',
   '17 Banda Sonora de miedo LEYENDAS BERNAL.mp3',
-].map(f => BASE_AUDIO + encodeURIComponent(f));
+];
 
-// ── INSTALL: cachea el shell de la app ──────────────────────────
+// ── INSTALL ─────────────────────────────────────────────────────
 self.addEventListener('install', event => {
+  console.log('[SW] Install');
   event.waitUntil(
-    caches.open(CACHE_VERSION).then(cache => {
-      console.log('[SW] Instalando app shell...');
-      return cache.addAll(APP_SHELL);
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
   );
 });
 
-// ── ACTIVATE: elimina cachés viejos ────────────────────────────
+// ── ACTIVATE ────────────────────────────────────────────────────
 self.addEventListener('activate', event => {
+  console.log('[SW] Activate');
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k))
-      )
-    ).then(() => {
-      console.log('[SW] Activado. Versión:', CACHE_VERSION);
-      // Cachea los audios en segundo plano tras activar
-      cacheAudiosInBackground();
-      return self.clients.claim();
-    })
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => {
+          console.log('[SW] Eliminando caché viejo:', k);
+          return caches.delete(k);
+        })
+      ))
+      .then(() => self.clients.claim())
+      .then(() => precargarAudios())
   );
 });
 
-// ── FETCH: sirve desde caché, si no hay va a red y guarda ───────
+// ── FETCH: Cache First para audios, Network First para el resto ──
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
+  const url = new URL(event.request.url);
+  const esAudio = url.pathname.endsWith('.mp3');
 
-      return fetch(event.request).then(response => {
-        // Solo cachear respuestas válidas
-        if (!response || response.status !== 200 || response.type === 'error') {
+  if (esAudio) {
+    // AUDIO → Cache First: si está en caché lo devuelve SIN red
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async cache => {
+        const cached = await cache.match(event.request);
+        if (cached) {
+          console.log('[SW] Desde caché:', url.pathname);
+          return cached;
+        }
+        // No está en caché, lo descarga y lo guarda
+        console.log('[SW] Descargando y cacheando:', url.pathname);
+        try {
+          const response = await fetch(event.request);
+          if (response.ok) {
+            cache.put(event.request, response.clone());
+          }
           return response;
+        } catch (e) {
+          console.error('[SW] Sin red y sin caché para:', url.pathname);
+          return new Response('Audio no disponible sin conexión', { status: 503 });
         }
-        const clone = response.clone();
-        caches.open(CACHE_VERSION).then(cache => cache.put(event.request, clone));
-        return response;
-      }).catch(() => {
-        // Sin red y sin caché: devuelve página offline para HTML
-        if (event.request.destination === 'document') {
-          return caches.match('./index.html');
-        }
-      });
-    })
-  );
+      })
+    );
+  } else {
+    // APP SHELL → Cache First también
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(response => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        }).catch(() => caches.match('./index.html'));
+      })
+    );
+  }
 });
 
-// ── CARGA DE AUDIOS EN SEGUNDO PLANO ───────────────────────────
-// Los audios se cachean uno a uno sin bloquear la UI
-async function cacheAudiosInBackground() {
-  const cache = await caches.open(CACHE_VERSION);
-  let cached = 0;
+// ── PRE-CARGA DE AUDIOS EN SEGUNDO PLANO ───────────────────────
+async function precargarAudios() {
+  const cache = await caches.open(CACHE_NAME);
+  const base = self.registration.scope; // ej: https://vegalfredo.github.io/Musica_Bernal/
+  let cargados = 0;
+  const total = AUDIO_FILES.length;
 
-  for (const url of AUDIO_FILES) {
+  console.log('[SW] Iniciando pre-carga de', total, 'audios desde:', base);
+
+  for (const archivo of AUDIO_FILES) {
+    const url = base + encodeURIComponent(archivo);
     try {
-      const already = await cache.match(url);
-      if (already) { cached++; continue; }
+      // Verificar si ya está en caché
+      const yaEnCache = await cache.match(url);
+      if (yaEnCache) {
+        cargados++;
+        notificarProgreso(cargados, total);
+        continue;
+      }
 
       const response = await fetch(url);
       if (response.ok) {
         await cache.put(url, response);
-        cached++;
-        // Notifica el progreso a los clientes abiertos
-        const clients = await self.clients.matchAll();
-        clients.forEach(client => client.postMessage({
-          type: 'CACHE_PROGRESS',
-          cached,
-          total: AUDIO_FILES.length
-        }));
+        cargados++;
+        console.log('[SW] Cacheado:', archivo, `(${cargados}/${total})`);
+        notificarProgreso(cargados, total);
+      } else {
+        console.warn('[SW] Error HTTP', response.status, 'para:', archivo);
       }
     } catch (e) {
-      console.warn('[SW] No se pudo cachear:', url);
+      console.warn('[SW] Fallo al cachear:', archivo, e.message);
     }
   }
 
-  // Notifica que terminó
-  const clients = await self.clients.matchAll();
-  clients.forEach(client => client.postMessage({
-    type: 'CACHE_COMPLETE',
-    total: AUDIO_FILES.length
-  }));
+  notificarCompleto(total);
+}
+
+function notificarProgreso(cargados, total) {
+  self.clients.matchAll().then(clients =>
+    clients.forEach(c => c.postMessage({
+      type: 'CACHE_PROGRESS', cargados, total
+    }))
+  );
+}
+
+function notificarCompleto(total) {
+  console.log('[SW] Pre-carga completa:', total, 'audios');
+  self.clients.matchAll().then(clients =>
+    clients.forEach(c => c.postMessage({
+      type: 'CACHE_COMPLETE', total
+    }))
+  );
 }

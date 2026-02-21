@@ -21,267 +21,76 @@
     --rojo: #e74c3c;
     --azul: #3498db;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    background: var(--bg);
-    color: #fff;
-    font-family: 'Crimson Text', serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
+  body { background: var(--bg); color: #fff; font-family: 'Crimson Text', serif; min-height: 100vh; overflow-x: hidden; }
   body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse at 20% 20%, rgba(245,197,24,0.04) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 80%, rgba(231,76,60,0.04) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse at 20% 20%, rgba(245,197,24,0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(231,76,60,0.04) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
   }
 
-  /* ── HEADER ── */
   header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(10,10,15,0.97);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 16px 8px;
-    text-align: center;
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.97); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border); padding: 12px 16px 8px; text-align: center;
   }
-
   header h1 {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(1.1rem, 4.5vw, 1.6rem);
-    font-weight: 900;
-    letter-spacing: 0.18em;
+    font-family: 'Cinzel', serif; font-size: clamp(1.1rem, 4.5vw, 1.6rem);
+    font-weight: 900; letter-spacing: 0.18em;
     background: linear-gradient(135deg, #f5c518 0%, #e91e8c 50%, #9b59b6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     text-transform: uppercase;
   }
 
-  /* ── MINI PLAYER ── */
-  #mini-player {
-    display: none;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    margin: 10px 0 0;
-    padding: 8px 12px;
-  }
+  #mini-player { display: none; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px; margin: 10px 0 0; padding: 8px 12px; }
   #mini-player.visible { display: block; }
-
-  #now-playing-label {
-    font-size: 0.68rem;
-    color: rgba(255,255,255,0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 2px;
-  }
-  #now-playing-title {
-    font-family: 'Cinzel', serif;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 6px;
-  }
-
-  .player-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  #progress-bar-container {
-    flex: 1;
-    height: 5px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 3px;
-    cursor: pointer;
-    position: relative;
-  }
-  #progress-bar-fill {
-    height: 100%;
-    border-radius: 3px;
-    width: 0%;
-    transition: width 0.4s linear;
-  }
-
-  .time-label {
-    font-size: 0.68rem;
-    color: rgba(255,255,255,0.45);
-    min-width: 30px;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-  }
-
+  #now-playing-label { font-size: 0.68rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
+  #now-playing-title { font-family: 'Cinzel', serif; font-size: 0.82rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
+  .player-controls { display: flex; align-items: center; gap: 8px; }
+  #progress-bar-container { flex: 1; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; cursor: pointer; }
+  #progress-bar-fill { height: 100%; border-radius: 3px; width: 0%; transition: width 0.4s linear; }
+  .time-label { font-size: 0.68rem; color: rgba(255,255,255,0.45); min-width: 30px; text-align: center; font-variant-numeric: tabular-nums; }
   #volume-container { display: flex; align-items: center; gap: 5px; }
   #volume-icon { font-size: 0.85rem; cursor: pointer; user-select: none; }
-  #volume-slider {
-    -webkit-appearance: none;
-    width: 65px;
-    height: 4px;
-    border-radius: 2px;
-    background: rgba(255,255,255,0.15);
-    outline: none;
-    cursor: pointer;
-  }
-  #volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 13px; height: 13px;
-    border-radius: 50%;
-    background: #fff;
-    cursor: pointer;
-  }
+  #volume-slider { -webkit-appearance: none; width: 65px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.15); outline: none; cursor: pointer; }
+  #volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: #fff; cursor: pointer; }
 
-  /* ── MAIN ── */
-  main {
-    position: relative;
-    z-index: 1;
-    padding: 14px 12px 90px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
+  main { position: relative; z-index: 1; padding: 14px 12px 90px; display: flex; flex-direction: column; gap: 16px; }
 
-  /* ── GRUPOS ── */
-  .obra-group {
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    animation: fadeUp 0.35s ease both;
-  }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  .obra-group { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); animation: fadeUp 0.35s ease both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
   .obra-group:nth-child(1) { animation-delay: 0.05s; }
   .obra-group:nth-child(2) { animation-delay: 0.10s; }
   .obra-group:nth-child(3) { animation-delay: 0.15s; }
   .obra-group:nth-child(4) { animation-delay: 0.20s; }
   .obra-group:nth-child(5) { animation-delay: 0.25s; }
 
-  .obra-header {
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .obra-header { padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
   .obra-icon { font-size: 1.2rem; }
-  .obra-title {
-    font-family: 'Cinzel', serif;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-  .obra-count {
-    margin-left: auto;
-    font-size: 0.68rem;
-    opacity: 0.55;
-  }
+  .obra-title { font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .obra-count { margin-left: auto; font-size: 0.68rem; opacity: 0.55; }
 
-  /* ── BOTONES TRACK ── */
-  .tracks-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    background: rgba(0,0,0,0.4);
-  }
-
+  .tracks-grid { display: flex; flex-direction: column; gap: 1px; background: rgba(0,0,0,0.4); }
   .track-btn {
-    width: 100%;
-    min-height: 62px;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 11px 16px;
-    text-align: left;
-    transition: background 0.15s ease, transform 0.1s ease;
-    position: relative;
-    overflow: hidden;
-    background: var(--surface);
-    border-left: 3px solid transparent;
+    width: 100%; min-height: 62px; border: none; cursor: pointer;
+    display: flex; align-items: center; gap: 12px; padding: 11px 16px;
+    text-align: left; transition: background 0.15s ease, transform 0.1s ease;
+    position: relative; overflow: hidden; background: var(--surface); border-left: 3px solid transparent;
   }
-
   .track-btn:hover { filter: brightness(1.15); }
   .track-btn:active { transform: scale(0.98); }
-
-  .track-btn.placeholder {
-    opacity: 0.3;
-    cursor: default;
-    pointer-events: none;
-  }
-
-  .track-number {
-    font-family: 'Cinzel', serif;
-    font-size: 0.72rem;
-    font-weight: 700;
-    min-width: 26px;
-    text-align: center;
-    opacity: 0.55;
-  }
-
+  .track-btn.placeholder { opacity: 0.3; cursor: default; pointer-events: none; }
+  .track-number { font-family: 'Cinzel', serif; font-size: 0.72rem; font-weight: 700; min-width: 26px; text-align: center; opacity: 0.55; }
   .track-info { flex: 1; min-width: 0; }
-  .track-name {
-    font-family: 'Cinzel', serif;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.3;
-  }
-  .track-file {
-    font-size: 0.68rem;
-    margin-top: 2px;
-    opacity: 0.45;
-    font-style: italic;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+  .track-name { font-family: 'Cinzel', serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.03em; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+  .track-file { font-size: 0.68rem; margin-top: 2px; opacity: 0.45; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .track-play-icon { font-size: 1.3rem; min-width: 30px; text-align: center; transition: transform 0.2s; flex-shrink: 0; }
+  .track-btn.playing .track-play-icon { animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+  .track-progress { position: absolute; bottom: 0; left: 0; height: 3px; width: 0%; transition: width 0.4s linear; }
 
-  .track-play-icon {
-    font-size: 1.3rem;
-    min-width: 30px;
-    text-align: center;
-    transition: transform 0.2s;
-    flex-shrink: 0;
-  }
-  .track-btn.playing .track-play-icon {
-    animation: pulse 1.2s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%,100% { transform: scale(1); }
-    50%      { transform: scale(1.2); }
-  }
-
-  /* Barra de progreso interna al botón */
-  .track-progress {
-    position: absolute;
-    bottom: 0; left: 0;
-    height: 3px;
-    width: 0%;
-    transition: width 0.4s linear;
-  }
-
-  /* ── COLORES POR GRUPO ── */
-  /* AMARILLO */
+  /* COLORES */
   .grupo-amarillo.obra-group        { border-color: rgba(245,197,24,0.25); }
   .grupo-amarillo .obra-header      { background: linear-gradient(135deg,#3a2d00,#1c1500); border-bottom: 1px solid rgba(245,197,24,0.15); }
   .grupo-amarillo .obra-title       { color: var(--amarillo); }
@@ -290,7 +99,6 @@
   .grupo-amarillo .track-play-icon  { color: var(--amarillo); }
   .grupo-amarillo .track-progress   { background: var(--amarillo); }
 
-  /* MORADO */
   .grupo-morado.obra-group          { border-color: rgba(155,89,182,0.25); }
   .grupo-morado .obra-header        { background: linear-gradient(135deg,#280b38,#160720); border-bottom: 1px solid rgba(155,89,182,0.15); }
   .grupo-morado .obra-title         { color: var(--morado); }
@@ -299,7 +107,6 @@
   .grupo-morado .track-play-icon    { color: var(--morado); }
   .grupo-morado .track-progress     { background: var(--morado); }
 
-  /* ROSA */
   .grupo-rosa.obra-group            { border-color: rgba(233,30,140,0.25); }
   .grupo-rosa .obra-header          { background: linear-gradient(135deg,#38091f,#1e0410); border-bottom: 1px solid rgba(233,30,140,0.15); }
   .grupo-rosa .obra-title           { color: var(--rosa); }
@@ -308,7 +115,6 @@
   .grupo-rosa .track-play-icon      { color: var(--rosa); }
   .grupo-rosa .track-progress       { background: var(--rosa); }
 
-  /* ROJO */
   .grupo-rojo.obra-group            { border-color: rgba(231,76,60,0.25); }
   .grupo-rojo .obra-header          { background: linear-gradient(135deg,#380808,#1e0404); border-bottom: 1px solid rgba(231,76,60,0.15); }
   .grupo-rojo .obra-title           { color: var(--rojo); }
@@ -317,7 +123,6 @@
   .grupo-rojo .track-play-icon      { color: var(--rojo); }
   .grupo-rojo .track-progress       { background: var(--rojo); }
 
-  /* AZUL */
   .grupo-azul.obra-group            { border-color: rgba(52,152,219,0.25); }
   .grupo-azul .obra-header          { background: linear-gradient(135deg,#082438,#04121e); border-bottom: 1px solid rgba(52,152,219,0.15); }
   .grupo-azul .obra-title           { color: var(--azul); }
@@ -326,82 +131,32 @@
   .grupo-azul .track-play-icon      { color: var(--azul); }
   .grupo-azul .track-progress       { background: var(--azul); }
 
-  /* ── FOOTER BAR ── */
   .footer-bar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: rgba(10,10,15,0.97);
-    border-top: 1px solid var(--border);
-    padding: 8px 14px 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    z-index: 200;
-    backdrop-filter: blur(12px);
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(10,10,15,0.97); border-top: 1px solid var(--border);
+    padding: 8px 14px 14px; display: flex; align-items: center; gap: 10px;
+    z-index: 200; backdrop-filter: blur(12px);
   }
-
   #stop-btn {
-    background: rgba(231,76,60,0.15);
-    border: 1px solid rgba(231,76,60,0.35);
-    color: #e74c3c;
-    border-radius: 10px;
-    padding: 9px 14px;
-    font-family: 'Cinzel', serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    cursor: pointer;
-    transition: all 0.18s;
-    white-space: nowrap;
-    flex-shrink: 0;
+    background: rgba(231,76,60,0.15); border: 1px solid rgba(231,76,60,0.35); color: #e74c3c;
+    border-radius: 10px; padding: 9px 14px; font-family: 'Cinzel', serif; font-size: 0.7rem;
+    font-weight: 700; letter-spacing: 0.08em; cursor: pointer; transition: all 0.18s; white-space: nowrap; flex-shrink: 0;
   }
   #stop-btn:active { background: rgba(231,76,60,0.3); transform: scale(0.95); }
-
-  #footer-info {
-    font-size: 0.75rem;
-    color: rgba(255,255,255,0.35);
-    font-style: italic;
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
+  #footer-info { font-size: 0.75rem; color: rgba(255,255,255,0.35); font-style: italic; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #install-btn {
-    display: none;
-    background: rgba(52,152,219,0.15);
-    border: 1px solid rgba(52,152,219,0.3);
-    color: var(--azul);
-    border-radius: 10px;
-    padding: 9px 12px;
-    font-family: 'Cinzel', serif;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    cursor: pointer;
-    transition: all 0.18s;
-    white-space: nowrap;
-    flex-shrink: 0;
+    display: none; background: rgba(52,152,219,0.15); border: 1px solid rgba(52,152,219,0.3);
+    color: var(--azul); border-radius: 10px; padding: 9px 12px; font-family: 'Cinzel', serif;
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; cursor: pointer; transition: all 0.18s; white-space: nowrap; flex-shrink: 0;
   }
   #install-btn.visible { display: block; }
-  #install-btn:active { background: rgba(52,152,219,0.3); }
 
-  /* ── TOAST ── */
   #toast {
-    position: fixed;
-    bottom: 72px; left: 50%;
+    position: fixed; bottom: 72px; left: 50%;
     transform: translateX(-50%) translateY(10px);
-    background: #1c1c2e;
-    border: 1px solid rgba(255,255,255,0.12);
-    color: #fff;
-    padding: 9px 20px;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    opacity: 0;
-    transition: all 0.3s ease;
-    z-index: 300;
-    pointer-events: none;
-    white-space: nowrap;
+    background: #1c1c2e; border: 1px solid rgba(255,255,255,0.12); color: #fff;
+    padding: 9px 20px; border-radius: 20px; font-size: 0.82rem;
+    opacity: 0; transition: all 0.3s ease; z-index: 300; pointer-events: none; white-space: nowrap;
   }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
@@ -415,9 +170,7 @@
     <div id="now-playing-title">—</div>
     <div class="player-controls">
       <span class="time-label" id="time-current">0:00</span>
-      <div id="progress-bar-container">
-        <div id="progress-bar-fill"></div>
-      </div>
+      <div id="progress-bar-container"><div id="progress-bar-fill"></div></div>
       <span class="time-label" id="time-total">0:00</span>
       <div id="volume-container">
         <span id="volume-icon">🔊</span>
@@ -434,103 +187,82 @@
   <div id="footer-info">Sin reproducción</div>
   <button id="install-btn">📲 Instalar</button>
 </div>
-
 <div id="toast"></div>
 
 <script>
 // ════════════════════════════════════════════════════════════════
-//  CONFIGURACIÓN — edita aquí los nombres de botones y archivos
+//  BASE_URL — apunta a GitHub Pages (mismo dominio que el SW)
+//  IMPORTANTE: los audios se sirven desde la misma URL que la app,
+//  así el Service Worker puede cachearlos correctamente.
 // ════════════════════════════════════════════════════════════════
-const BASE_URL = 'https://raw.githubusercontent.com/vegalfredo/Musica_Bernal/main/';
+const BASE_URL = './';   // relativo a index.html en GitHub Pages
 
 const OBRAS = [
   {
-    id: 'llamadas',
-    titulo: 'Las Llamadas',
-    icono: '🔔',
-    color: 'amarillo',
+    id: 'llamadas', titulo: 'Las Llamadas', icono: '🔔', color: 'amarillo',
     tracks: [
-      { nombre: 'Música de Sala',            archivo: '00 Musica de Sala.mp3' },
-      { nombre: '1ª Llamada',                archivo: '01 primera llamada Las Leyendas.mp3' },
-      { nombre: 'Música de Sala',            archivo: '02 Musica de Sala.mp3' },
-      { nombre: '2ª Llamada',                archivo: '03 Segunda llamada Las Leyendas.mp3' },
-      { nombre: 'Música de Sala',            archivo: '04 Musica de Sala.mp3' },
-      { nombre: '3ª Llamada',                archivo: '05 Tercera llamada Las Leyendas.mp3' },
-      { nombre: 'Track extra 1',             archivo: null },  // ← pon aquí el nombre del archivo cuando lo tengas
-      { nombre: 'Track extra 2',             archivo: null },  // ← pon aquí el nombre del archivo cuando lo tengas
-      { nombre: 'Track extra 3',             archivo: null },  // ← pon aquí el nombre del archivo cuando lo tengas
+      { nombre: 'Música de Sala',        archivo: '00 Musica de Sala.mp3' },
+      { nombre: '1ª Llamada',            archivo: '01 primera llamada Las Leyendas.mp3' },
+      { nombre: 'Música de Sala',        archivo: '02 Musica de Sala.mp3' },
+      { nombre: '2ª Llamada',            archivo: '03 Segunda llamada Las Leyendas.mp3' },
+      { nombre: 'Música de Sala',        archivo: '04 Musica de Sala.mp3' },
+      { nombre: '3ª Llamada',            archivo: '05 Tercera llamada Las Leyendas.mp3' },
+      { nombre: 'Track extra 1',         archivo: null },
+      { nombre: 'Track extra 2',         archivo: null },
+      { nombre: 'Track extra 3',         archivo: null },
     ]
   },
   {
-    id: 'viejita',
-    titulo: 'La Viejita de Chicaroma',
-    icono: '👵',
-    color: 'morado',
+    id: 'viejita', titulo: 'La Viejita de Chicaroma', icono: '👵', color: 'morado',
     tracks: [
-      { nombre: 'Suspenso Entrada',          archivo: '06 Suspenso entrada Viejita.mp3' },
-      { nombre: '¡Chan Chan Chaaan!',        archivo: '07 CHAN CHAN CHAAAN.mp3' },
+      { nombre: 'Suspenso Entrada',      archivo: '06 Suspenso entrada Viejita.mp3' },
+      { nombre: '¡Chan Chan Chaaan!',    archivo: '07 CHAN CHAN CHAAAN.mp3' },
     ]
   },
   {
-    id: 'lucila',
-    titulo: 'Lucila y Francisco',
-    icono: '💝',
-    color: 'rosa',
+    id: 'lucila', titulo: 'Lucila y Francisco', icono: '💝', color: 'rosa',
     tracks: [
-      { nombre: 'Música de Amor (A)',        archivo: '07 MUSICA AMOR TELENOVELA.mp3' },
-      { nombre: 'Música de Amor (B)',        archivo: '08 MUSICA AMOR TELENOVELA.mp3' },
-      { nombre: 'Música Dramática',          archivo: '09 MUSICA DRAMATIC OK.mp3' },
-      { nombre: 'Música Fúnebre',            archivo: '09 audio musica funebre.mp3' },
+      { nombre: 'Música de Amor (A)',    archivo: '07 MUSICA AMOR TELENOVELA.mp3' },
+      { nombre: 'Música de Amor (B)',    archivo: '08 MUSICA AMOR TELENOVELA.mp3' },
+      { nombre: 'Música Dramática',      archivo: '09 MUSICA DRAMATIC OK.mp3' },
+      { nombre: 'Música Fúnebre',        archivo: '09 audio musica funebre.mp3' },
     ]
   },
   {
-    id: 'cuervito',
-    titulo: 'El Cuervito del Manantial',
-    icono: '🐦‍⬛',
-    color: 'rojo',
+    id: 'cuervito', titulo: 'El Cuervito del Manantial', icono: '🐦‍⬛', color: 'rojo',
     tracks: [
-      { nombre: 'Risa Macabra',              archivo: '10 Risa Macabra.mp3' },
-      { nombre: 'Camino al Terror',          archivo: '11 Camino hacia el terror.mp3' },
-      { nombre: 'Efecto de Cuervos',         archivo: '12 Efecto de Cuervos.mp3' },
-      { nombre: 'Tensión y Agua',            archivo: '13 MUSICA DIVINA, TENSION Y AGUA.mp3' },
+      { nombre: 'Risa Macabra',          archivo: '10 Risa Macabra.mp3' },
+      { nombre: 'Camino al Terror',      archivo: '11 Camino hacia el terror.mp3' },
+      { nombre: 'Efecto de Cuervos',     archivo: '12 Efecto de Cuervos.mp3' },
+      { nombre: 'Tensión y Agua',        archivo: '13 MUSICA DIVINA, TENSION Y AGUA.mp3' },
     ]
   },
   {
-    id: 'despedida',
-    titulo: 'Despedida y Agradecimientos',
-    icono: '🌟',
-    color: 'azul',
+    id: 'despedida', titulo: 'Despedida y Agradecimientos', icono: '🌟', color: 'azul',
     tracks: [
-      { nombre: 'Música para Agradecer',     archivo: '14 Musica para AGRADECER.mp3' },
-      { nombre: 'Final Satisfactorio',       archivo: '15 Final Satisfactorio.mp3' },
-      { nombre: 'Final Épico (Enya)',        archivo: '16 ENYA MUSICA FINAL EPICA.mp3' },
-      { nombre: 'Banda Sonora Leyendas',     archivo: '17 Banda Sonora de miedo LEYENDAS BERNAL.mp3' },
+      { nombre: 'Música para Agradecer', archivo: '14 Musica para AGRADECER.mp3' },
+      { nombre: 'Final Satisfactorio',   archivo: '15 Final Satisfactorio.mp3' },
+      { nombre: 'Final Épico (Enya)',    archivo: '16 ENYA MUSICA FINAL EPICA.mp3' },
+      { nombre: 'Banda Sonora Leyendas', archivo: '17 Banda Sonora de miedo LEYENDAS BERNAL.mp3' },
     ]
   }
 ];
 
-// ════════════════════════════════════════════════════════════════
-//  ESTADO
-// ════════════════════════════════════════════════════════════════
+// ── ESTADO ───────────────────────────────────────────────────────
 let currentAudio = null;
 let currentBtn   = null;
 let progressInt  = null;
 
-// ════════════════════════════════════════════════════════════════
-//  RENDER UI
-// ════════════════════════════════════════════════════════════════
+// ── RENDER ───────────────────────────────────────────────────────
 const app = document.getElementById('app');
-
 OBRAS.forEach(obra => {
   const group = document.createElement('div');
   group.className = `obra-group grupo-${obra.color}`;
-
-  const activeCount = obra.tracks.filter(t => t.archivo).length;
   group.innerHTML = `
     <div class="obra-header">
       <span class="obra-icon">${obra.icono}</span>
       <span class="obra-title">${obra.titulo}</span>
-      <span class="obra-count">${activeCount} tracks</span>
+      <span class="obra-count">${obra.tracks.filter(t=>t.archivo).length} tracks</span>
     </div>
     <div class="tracks-grid" id="grid-${obra.id}"></div>
   `;
@@ -541,7 +273,7 @@ OBRAS.forEach(obra => {
     const btn = document.createElement('button');
     btn.className = `track-btn${!track.archivo ? ' placeholder' : ''}`;
     btn.innerHTML = `
-      <span class="track-number">${String(idx + 1).padStart(2,'0')}</span>
+      <span class="track-number">${String(idx+1).padStart(2,'0')}</span>
       <div class="track-info">
         <div class="track-name">${track.nombre}</div>
         <div class="track-file">${track.archivo || '— pendiente —'}</div>
@@ -549,88 +281,65 @@ OBRAS.forEach(obra => {
       <span class="track-play-icon">▶</span>
       <div class="track-progress"></div>
     `;
-    if (track.archivo) {
-      btn.addEventListener('click', () => handleTrack(btn, track, obra));
-    }
+    if (track.archivo) btn.addEventListener('click', () => handleTrack(btn, track, obra));
     grid.appendChild(btn);
   });
 });
 
-// ════════════════════════════════════════════════════════════════
-//  LÓGICA DE AUDIO
-// ════════════════════════════════════════════════════════════════
+// ── AUDIO ────────────────────────────────────────────────────────
 function handleTrack(btn, track, obra) {
-  // Toggle pausa/play si es el mismo track
   if (currentBtn === btn && currentAudio) {
     if (currentAudio.paused) {
       currentAudio.play();
-      setPlayIcon(btn, '⏸');
-      setFooter(`▶ ${track.nombre}`);
+      setIcon(btn, '⏸'); setFooter(`▶ ${track.nombre}`);
     } else {
       currentAudio.pause();
-      setPlayIcon(btn, '▶');
-      setFooter(`⏸ ${track.nombre}`);
+      setIcon(btn, '▶'); setFooter(`⏸ ${track.nombre}`);
     }
     return;
   }
-
-  // Detener lo que suene
   stopCurrent();
 
-  // Nuevo audio
+  // URL relativa — misma que usa el SW para cachear
   const url = BASE_URL + encodeURIComponent(track.archivo);
   const audio = new Audio(url);
   audio.volume = parseFloat(document.getElementById('volume-slider').value);
-
   currentAudio = audio;
   currentBtn   = btn;
 
-  // UI botón
   btn.classList.add('playing');
-  setPlayIcon(btn, '⏸');
-
-  // Mini player
-  const player = document.getElementById('mini-player');
-  player.classList.add('visible');
+  setIcon(btn, '⏸');
+  document.getElementById('mini-player').classList.add('visible');
   document.getElementById('now-playing-title').textContent = `${obra.icono} ${track.nombre}`;
 
-  // Color de la barra de progreso según obra
   const colorMap = { amarillo:'#f5c518', morado:'#9b59b6', rosa:'#e91e8c', rojo:'#e74c3c', azul:'#3498db' };
   document.getElementById('progress-bar-fill').style.background = colorMap[obra.color];
-
-  // Footer
   setFooter(`▶ ${obra.titulo} — ${track.nombre}`);
 
-  // Metadata
   audio.addEventListener('loadedmetadata', () => {
-    document.getElementById('time-total').textContent = fmtTime(audio.duration);
+    document.getElementById('time-total').textContent = fmt(audio.duration);
   });
 
-  // Progreso
   progressInt = setInterval(() => {
     if (audio.duration && !audio.paused) {
-      const pct = (audio.currentTime / audio.duration) * 100;
-      document.getElementById('progress-bar-fill').style.width = pct + '%';
-      btn.querySelector('.track-progress').style.width = pct + '%';
-      document.getElementById('time-current').textContent = fmtTime(audio.currentTime);
+      const p = (audio.currentTime / audio.duration) * 100;
+      document.getElementById('progress-bar-fill').style.width = p + '%';
+      btn.querySelector('.track-progress').style.width = p + '%';
+      document.getElementById('time-current').textContent = fmt(audio.currentTime);
     }
   }, 500);
 
-  // Fin de pista
   audio.addEventListener('ended', () => {
     resetBtn(btn);
     document.getElementById('mini-player').classList.remove('visible');
     setFooter('Sin reproducción');
     clearInterval(progressInt);
-    currentAudio = null;
-    currentBtn   = null;
+    currentAudio = null; currentBtn = null;
   });
 
   audio.play().catch(() => {
     toast('❌ No se pudo cargar el audio');
-    resetBtn(btn);
-    currentAudio = null;
-    currentBtn   = null;
+    resetBtn(btn); currentAudio = null; currentBtn = null;
   });
 }
 
@@ -641,75 +350,63 @@ function stopCurrent() {
   document.getElementById('progress-bar-fill').style.width = '0%';
   document.getElementById('time-current').textContent = '0:00';
   document.getElementById('mini-player').classList.remove('visible');
-  currentAudio = null;
-  currentBtn   = null;
+  currentAudio = null; currentBtn = null;
 }
-
 function resetBtn(btn) {
   btn.classList.remove('playing');
-  setPlayIcon(btn, '▶');
+  setIcon(btn, '▶');
   btn.querySelector('.track-progress').style.width = '0%';
 }
+function setIcon(btn, i) { btn.querySelector('.track-play-icon').textContent = i; }
 
-function setPlayIcon(btn, icon) {
-  btn.querySelector('.track-play-icon').textContent = icon;
-}
-
-// ════════════════════════════════════════════════════════════════
-//  CONTROLES GLOBALES
-// ════════════════════════════════════════════════════════════════
-document.getElementById('stop-btn').addEventListener('click', () => {
-  stopCurrent();
-  setFooter('Sin reproducción');
-});
-
-// Click en barra de progreso → seek
+document.getElementById('stop-btn').addEventListener('click', () => { stopCurrent(); setFooter('Sin reproducción'); });
 document.getElementById('progress-bar-container').addEventListener('click', e => {
   if (!currentAudio || !currentAudio.duration) return;
   const r = e.currentTarget.getBoundingClientRect();
   currentAudio.currentTime = ((e.clientX - r.left) / r.width) * currentAudio.duration;
 });
-
-// Volumen
 document.getElementById('volume-slider').addEventListener('input', e => {
   if (currentAudio) currentAudio.volume = e.target.value;
   const v = parseFloat(e.target.value);
   document.getElementById('volume-icon').textContent = v > 0.5 ? '🔊' : v > 0 ? '🔉' : '🔇';
 });
 
-// ════════════════════════════════════════════════════════════════
-//  UTILS
-// ════════════════════════════════════════════════════════════════
-function fmtTime(s) {
-  if (!s || isNaN(s)) return '0:00';
-  return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
-}
-function setFooter(txt) { document.getElementById('footer-info').textContent = txt; }
-function toast(msg, ms = 3000) {
+function fmt(s) { if (!s||isNaN(s)) return '0:00'; return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`; }
+function setFooter(t) { document.getElementById('footer-info').textContent = t; }
+function toast(msg, ms=3000) {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
+  el.textContent = msg; el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), ms);
 }
 
-// ════════════════════════════════════════════════════════════════
-//  PWA — Service Worker + Instalación
-// ════════════════════════════════════════════════════════════════
+// ── PWA ──────────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then(() => toast('✅ App lista para usar sin conexión', 4000))
-      .catch(err => console.warn('SW no registrado:', err));
+      .then(reg => {
+        console.log('SW registrado:', reg.scope);
+        toast('✅ App lista para usar sin conexión', 4000);
+      })
+      .catch(err => console.warn('SW error:', err));
+  });
+
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data.type === 'CACHE_PROGRESS') {
+      const pct = Math.round((e.data.cargados / e.data.total) * 100);
+      setFooter(`⏳ Descargando audios... ${pct}% (${e.data.cargados}/${e.data.total})`);
+    }
+    if (e.data.type === 'CACHE_COMPLETE') {
+      setFooter('Sin reproducción');
+      toast(`✅ ${e.data.total} audios listos sin conexión`, 5000);
+    }
   });
 }
 
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
+  e.preventDefault(); deferredPrompt = e;
   document.getElementById('install-btn').classList.add('visible');
 });
-
 document.getElementById('install-btn').addEventListener('click', async () => {
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
@@ -717,22 +414,7 @@ document.getElementById('install-btn').addEventListener('click', async () => {
   if (outcome === 'accepted') document.getElementById('install-btn').classList.remove('visible');
   deferredPrompt = null;
 });
-
 window.addEventListener('appinstalled', () => toast('🎭 App instalada correctamente'));
-
-// Escucha el progreso de descarga de audios desde el SW
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('message', e => {
-    if (e.data.type === 'CACHE_PROGRESS') {
-      const pct = Math.round((e.data.cached / e.data.total) * 100);
-      setFooter(`⏳ Descargando audios... ${pct}% (${e.data.cached}/${e.data.total})`);
-    }
-    if (e.data.type === 'CACHE_COMPLETE') {
-      setFooter('Sin reproducción');
-      toast(`✅ ${e.data.total} audios listos sin conexión`, 4000);
-    }
-  });
-}
 </script>
 </body>
 </html>
