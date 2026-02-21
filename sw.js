@@ -1,19 +1,20 @@
 // ═══════════════════════════════════════════════════════════════
-//  SERVICE WORKER — Música Bernal PWA  v2
-//  Estrategia: los audios se sirven desde GitHub Pages (mismo
-//  dominio), así no hay problemas de CORS ni de encoding de URLs.
+//  SERVICE WORKER — Música Bernal PWA  v3
+//
+//  PROBLEMA RESUELTO: los navegadores móviles usan "Range Requests"
+//  para audio (piden el archivo por fragmentos). El SW debe responder
+//  a esas peticiones parciales desde el caché, de lo contrario
+//  el audio no se reproduce sin conexión.
 // ═══════════════════════════════════════════════════════════════
 
-const CACHE_NAME = 'musica-bernal-v2';
+const CACHE_NAME = 'musica-bernal-v3';
 
-// Archivos del shell de la app
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
 ];
 
-// Nombres exactos de los archivos de audio (mismo directorio que index.html)
 const AUDIO_FILES = [
   '00 Musica de Sala.mp3',
   '01 primera llamada Las Leyendas.mp3',
@@ -39,7 +40,7 @@ const AUDIO_FILES = [
 
 // ── INSTALL ─────────────────────────────────────────────────────
 self.addEventListener('install', event => {
-  console.log('[SW] Install');
+  console.log('[SW v3] Install');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(APP_SHELL))
@@ -49,57 +50,34 @@ self.addEventListener('install', event => {
 
 // ── ACTIVATE ────────────────────────────────────────────────────
 self.addEventListener('activate', event => {
-  console.log('[SW] Activate');
+  console.log('[SW v3] Activate');
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => {
-          console.log('[SW] Eliminando caché viejo:', k);
-          return caches.delete(k);
-        })
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
       ))
       .then(() => self.clients.claim())
       .then(() => precargarAudios())
   );
 });
 
-// ── FETCH: Cache First para audios, Network First para el resto ──
+// ── FETCH ────────────────────────────────────────────────────────
 self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-  const esAudio = url.pathname.endsWith('.mp3');
+  const url = event.request.url;
+  const esAudio = url.includes('.mp3');
 
   if (esAudio) {
-    // AUDIO → Cache First: si está en caché lo devuelve SIN red
-    event.respondWith(
-      caches.open(CACHE_NAME).then(async cache => {
-        const cached = await cache.match(event.request);
-        if (cached) {
-          console.log('[SW] Desde caché:', url.pathname);
-          return cached;
-        }
-        // No está en caché, lo descarga y lo guarda
-        console.log('[SW] Descargando y cacheando:', url.pathname);
-        try {
-          const response = await fetch(event.request);
-          if (response.ok) {
-            cache.put(event.request, response.clone());
-          }
-          return response;
-        } catch (e) {
-          console.error('[SW] Sin red y sin caché para:', url.pathname);
-          return new Response('Audio no disponible sin conexión', { status: 503 });
-        }
-      })
-    );
+    // Los audios necesitan manejo especial para Range Requests
+    event.respondWith(handleAudioRequest(event.request));
   } else {
-    // APP SHELL → Cache First también
+    // App shell: cache first
     event.respondWith(
       caches.match(event.request).then(cached => {
         if (cached) return cached;
         return fetch(event.request).then(response => {
           if (response && response.status === 200) {
             const clone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+            caches.open(CACHE_NAME).then(c => c.put(event.request, clone));
           }
           return response;
         }).catch(() => caches.match('./index.html'));
@@ -108,56 +86,152 @@ self.addEventListener('fetch', event => {
   }
 });
 
-// ── PRE-CARGA DE AUDIOS EN SEGUNDO PLANO ───────────────────────
+// ── MANEJO ESPECIAL DE AUDIO CON RANGE REQUESTS ──────────────────
+// Esta es la clave: cuando el navegador pide un rango del audio
+// (ej: bytes 0-65535), servimos ese rango desde el archivo completo
+// que tenemos en caché.
+async function handleAudioRequest(request) {
+  const cache = await caches.open(CACHE_NAME);
+
+  // Buscar el archivo completo en caché (ignorando el header Range)
+  const cacheKey = new Request(request.url);
+  const cachedResponse = await cache.match(cacheKey);
+
+  if (cachedResponse) {
+    // Tenemos el archivo completo en caché
+    const rangeHeader = request.headers.get('Range');
+
+    if (!rangeHeader) {
+      // Petición normal (no range) — devolver directo
+      return cachedResponse;
+    }
+
+    // Es una Range Request — extraer el rango pedido
+    const arrayBuffer = await cachedResponse.clone().arrayBuffer();
+    const totalBytes = arrayBuffer.byteLength;
+
+    // Parsear "bytes=start-end"
+    const rangeMatch = rangeHeader.match(/bytes=(\d*)-(\d*)/);
+    if (!rangeMatch) return cachedResponse;
+
+    const start = rangeMatch[1] ? parseInt(rangeMatch[1]) : 0;
+    const end   = rangeMatch[2] ? parseInt(rangeMatch[2]) : totalBytes - 1;
+    const chunkEnd = Math.min(end, totalBytes - 1);
+    const chunk = arrayBuffer.slice(start, chunkEnd + 1);
+
+    // Detectar tipo MIME
+    const contentType = cachedResponse.headers.get('Content-Type') || 'audio/mpeg';
+
+    // Responder con el fragmento solicitado (HTTP 206 Partial Content)
+    return new Response(chunk, {
+      status: 206,
+      statusText: 'Partial Content',
+      headers: {
+        'Content-Type': contentType,
+        'Content-Range': `bytes ${start}-${chunkEnd}/${totalBytes}`,
+        'Content-Length': String(chunk.byteLength),
+        'Accept-Ranges': 'bytes',
+      }
+    });
+  }
+
+  // No está en caché — descargar, guardar, y devolver
+  console.log('[SW v3] Descargando:', request.url);
+  try {
+    // Descargar SIN el header Range para obtener el archivo completo
+    const fullRequest = new Request(request.url, {
+      method: 'GET',
+      headers: { 'Accept': 'audio/mpeg, audio/*, */*' },
+      mode: 'cors',
+      credentials: 'omit',
+    });
+
+    const response = await fetch(fullRequest);
+    if (response.ok) {
+      await cache.put(cacheKey, response.clone());
+      console.log('[SW v3] Guardado en caché:', request.url);
+
+      // Si la petición original era Range, servir el rango desde la respuesta completa
+      const rangeHeader = request.headers.get('Range');
+      if (rangeHeader) {
+        const arrayBuffer = await response.clone().arrayBuffer();
+        const totalBytes = arrayBuffer.byteLength;
+        const rangeMatch = rangeHeader.match(/bytes=(\d*)-(\d*)/);
+        if (rangeMatch) {
+          const start = rangeMatch[1] ? parseInt(rangeMatch[1]) : 0;
+          const end   = rangeMatch[2] ? parseInt(rangeMatch[2]) : totalBytes - 1;
+          const chunkEnd = Math.min(end, totalBytes - 1);
+          const chunk = arrayBuffer.slice(start, chunkEnd + 1);
+          const contentType = response.headers.get('Content-Type') || 'audio/mpeg';
+          return new Response(chunk, {
+            status: 206,
+            statusText: 'Partial Content',
+            headers: {
+              'Content-Type': contentType,
+              'Content-Range': `bytes ${start}-${chunkEnd}/${totalBytes}`,
+              'Content-Length': String(chunk.byteLength),
+              'Accept-Ranges': 'bytes',
+            }
+          });
+        }
+      }
+    }
+    return response;
+  } catch (e) {
+    console.error('[SW v3] Sin red y sin caché:', request.url);
+    return new Response(null, { status: 503, statusText: 'Sin conexión' });
+  }
+}
+
+// ── PRE-CARGA DE AUDIOS EN SEGUNDO PLANO ────────────────────────
 async function precargarAudios() {
   const cache = await caches.open(CACHE_NAME);
-  const base = self.registration.scope; // ej: https://vegalfredo.github.io/Musica_Bernal/
+  const base  = self.registration.scope;
   let cargados = 0;
-  const total = AUDIO_FILES.length;
+  const total  = AUDIO_FILES.length;
 
-  console.log('[SW] Iniciando pre-carga de', total, 'audios desde:', base);
+  console.log('[SW v3] Pre-cargando', total, 'audios...');
 
   for (const archivo of AUDIO_FILES) {
     const url = base + encodeURIComponent(archivo);
     try {
-      // Verificar si ya está en caché
-      const yaEnCache = await cache.match(url);
+      const yaEnCache = await cache.match(new Request(url));
       if (yaEnCache) {
         cargados++;
-        notificarProgreso(cargados, total);
+        notificar(cargados, total);
         continue;
       }
 
-      const response = await fetch(url);
+      // Descargar el archivo COMPLETO (sin Range header)
+      const response = await fetch(new Request(url, {
+        method: 'GET',
+        headers: { 'Accept': 'audio/mpeg, audio/*, */*' },
+        mode: 'cors',
+        credentials: 'omit',
+      }));
+
       if (response.ok) {
-        await cache.put(url, response);
+        await cache.put(new Request(url), response);
         cargados++;
-        console.log('[SW] Cacheado:', archivo, `(${cargados}/${total})`);
-        notificarProgreso(cargados, total);
-      } else {
-        console.warn('[SW] Error HTTP', response.status, 'para:', archivo);
+        console.log('[SW v3] Cacheado:', archivo, `(${cargados}/${total})`);
+        notificar(cargados, total);
       }
     } catch (e) {
-      console.warn('[SW] Fallo al cachear:', archivo, e.message);
+      console.warn('[SW v3] Error al cachear:', archivo, e.message);
     }
   }
 
   notificarCompleto(total);
 }
 
-function notificarProgreso(cargados, total) {
+function notificar(cargados, total) {
   self.clients.matchAll().then(clients =>
-    clients.forEach(c => c.postMessage({
-      type: 'CACHE_PROGRESS', cargados, total
-    }))
+    clients.forEach(c => c.postMessage({ type: 'CACHE_PROGRESS', cargados, total }))
   );
 }
-
 function notificarCompleto(total) {
-  console.log('[SW] Pre-carga completa:', total, 'audios');
+  console.log('[SW v3] ¡Pre-carga completa!');
   self.clients.matchAll().then(clients =>
-    clients.forEach(c => c.postMessage({
-      type: 'CACHE_COMPLETE', total
-    }))
+    clients.forEach(c => c.postMessage({ type: 'CACHE_COMPLETE', total }))
   );
 }
